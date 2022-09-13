@@ -1385,6 +1385,30 @@ RegisterNetEvent('inventory:server:OpenInventory', function(name, id, other)
 				ShopItems[id] = {}
 				ShopItems[id].items = other.items
 				secondInv.slots = #other.items
+			elseif name == "mechanic" then
+				secondInv.name = "mechanicshop-"..id
+				secondInv.label = other.label
+				secondInv.maxweight = 900000
+				secondInv.inventory = SetupShopItems(other.items)
+				ShopItems[id] = {}
+				ShopItems[id].items = other.items
+				secondInv.slots = #other.items
+			elseif name == "catcafe" then
+				secondInv.name = "catcafeshop-"..id
+				secondInv.label = other.label
+				secondInv.maxweight = 900000
+				secondInv.inventory = SetupShopItems(other.items)
+				ShopItems[id] = {}
+				ShopItems[id].items = other.items
+				secondInv.slots = #other.items
+			elseif name == "burgershot" then
+				secondInv.name = "burgershotshop-"..id
+				secondInv.label = other.label
+				secondInv.maxweight = 900000
+				secondInv.inventory = SetupShopItems(other.items)
+				ShopItems[id] = {}
+				ShopItems[id].items = other.items
+				secondInv.slots = #other.items
 			elseif name == "traphouse" then
 				secondInv.name = "traphouse-"..id
 				secondInv.label = other.label
@@ -1532,10 +1556,11 @@ end)
 RegisterNetEvent('inventory:server:SetInventoryData', function(fromInventory, toInventory, fromSlot, toSlot, fromAmount, toAmount)
 	local src = source
 	local Player = QBCore.Functions.GetPlayer(src)
+	local PlayerData = Player.PlayerData
 	fromSlot = tonumber(fromSlot)
 	toSlot = tonumber(toSlot)
 
-	if (fromInventory == "player" or fromInventory == "hotbar") and (QBCore.Shared.SplitStr(toInventory, "-")[1] == "itemshop" or toInventory == "crafting") then
+	if (fromInventory == "player" or fromInventory == "hotbar") and (QBCore.Shared.SplitStr(toInventory, "-")[1] == "itemshop" or QBCore.Shared.SplitStr(toInventory, "-")[1] == "mechanicshop" or QBCore.Shared.SplitStr(toInventory, "-")[1] == "catcafeshop" or QBCore.Shared.SplitStr(toInventory, "-")[1] == "burgershotshop" or toInventory == "crafting") then
 		return
 	end
 
@@ -1975,6 +2000,48 @@ RegisterNetEvent('inventory:server:SetInventoryData', function(fromInventory, to
 				QBCore.Functions.Notify(src, Lang:t("notify.notencash"), "error")
 			end
 		end
+	elseif QBCore.Shared.SplitStr(fromInventory, "-")[1] == "mechanicshop" then
+		local shopType = QBCore.Shared.SplitStr(fromInventory, "-")[2]
+		local itemData = ShopItems[shopType].items[fromSlot]
+		local itemInfo = QBCore.Shared.Items[itemData.name:lower()]
+		local price = tonumber((itemData.price*fromAmount))
+		local title = ("%s / %s"):format(PlayerData.job.label, PlayerData.job.name)
+		if exports['Renewed-Banking']:removeAccountMoney('mechanic', price) then
+			exports['Renewed-Banking']:handleTransaction('mechanic', title, price, "購買 "..itemInfo.label, PlayerData.charinfo.firstname.." "..PlayerData.charinfo.lastname , PlayerData.job.label, 'withdraw')
+			AddItem(src, itemData.name, fromAmount, toSlot, itemData.info)
+			QBCore.Functions.Notify(src, "已購買 " .. itemInfo["label"], "success")
+			TriggerEvent("qb-log:server:CreateLog", "shops", "Mechanicshop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
+		else
+			QBCore.Functions.Notify(src, "You don't have enough cash..", "error")
+		end
+	elseif QBCore.Shared.SplitStr(fromInventory, "-")[1] == "catcafeshop" then
+		local shopType = QBCore.Shared.SplitStr(fromInventory, "-")[2]
+		local itemData = ShopItems[shopType].items[fromSlot]
+		local itemInfo = QBCore.Shared.Items[itemData.name:lower()]
+		local price = tonumber((itemData.price*fromAmount))
+		local title = ("%s / %s"):format(PlayerData.job.label, PlayerData.job.name)
+		if exports['Renewed-Banking']:removeAccountMoney('catcafe', price) then
+			exports['Renewed-Banking']:handleTransaction('catcafe', title, price, "購買 "..itemInfo.label, PlayerData.charinfo.firstname.." "..PlayerData.charinfo.lastname , PlayerData.job.label, 'withdraw')
+			AddItem(src, itemData.name, fromAmount, toSlot, itemData.info)
+			QBCore.Functions.Notify(src, "已購買 " .. itemInfo["label"], "success")
+			TriggerEvent("qb-log:server:CreateLog", "shops", "Catcafeshop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
+		else
+			QBCore.Functions.Notify(src, "You don't have enough cash..", "error")
+		end
+	elseif QBCore.Shared.SplitStr(fromInventory, "-")[1] == "burgershotshop" then
+		local shopType = QBCore.Shared.SplitStr(fromInventory, "-")[2]
+		local itemData = ShopItems[shopType].items[fromSlot]
+		local itemInfo = QBCore.Shared.Items[itemData.name:lower()]
+		local price = tonumber((itemData.price*fromAmount))
+		local title = ("%s / %s"):format(PlayerData.job.label, PlayerData.job.name)
+		if exports['Renewed-Banking']:removeAccountMoney('burgershot', price) then
+			exports['Renewed-Banking']:handleTransaction('burgershot', title, price, "購買 "..itemInfo.label, PlayerData.charinfo.firstname.." "..PlayerData.charinfo.lastname , PlayerData.job.label, 'withdraw')
+			AddItem(src, itemData.name, fromAmount, toSlot, itemData.info)
+			QBCore.Functions.Notify(src, "已購買 " .. itemInfo["label"], "success")
+			TriggerEvent("qb-log:server:CreateLog", "shops", "Burgershotshop item bought", "green", "**"..GetPlayerName(src) .. "** bought a " .. itemInfo["label"] .. " for $"..price)
+		else
+			QBCore.Functions.Notify(src, "You don't have enough cash..", "error")
+		end
 	elseif fromInventory == "crafting" then
 		local itemData = Config.CraftingItems[fromSlot]
 		if hasCraftItems(src, itemData.costs, fromAmount) then
@@ -2220,6 +2287,7 @@ QBCore.Commands.Add("giveitem", "Give An Item (Admin Only)", {{name="id", help="
 
 				if AddItem(id, itemData["name"], amount, false, info) then
 					QBCore.Functions.Notify(source, Lang:t("notify.yhg") ..GetPlayerName(id).." "..amount.." "..itemData["name"].. "", "success")
+					TriggerClientEvent('inventory:client:ItemBox', id, itemData, 'add', amount)
 				else
 					QBCore.Functions.Notify(source,  Lang:t("notify.cgitem"), "error")
 				end

@@ -6,7 +6,7 @@ version '1.0'
 
 shared_scripts {
 	'@qb-core/shared/locale.lua',
-	'locales/en.lua', -- Change to the language you want
+	'locales/tc.lua', -- Change to the language you want
 	'config.lua',
 	'@qb-weapons/config.lua'
 }
